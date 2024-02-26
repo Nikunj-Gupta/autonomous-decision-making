@@ -7,6 +7,7 @@ import matplotlib.pyplot as plot
 import random
 from moviepy.editor import VideoClip
 from moviepy.video.io.bindings import mplfig_to_npimage
+import os 
 
 MOVE_NORTH = 0
 MOVE_SOUTH = 1
@@ -22,9 +23,10 @@ NR_CHANNELS = len([AGENT_CHANNEL,GOAL_CHANNEL,OBSTACLE_CHANNEL])
 
 class RoomsEnv(gym.Env):
 
-    def __init__(self, width, height, obstacles, time_limit, stochastic=None, movie_filename=None):
+    def __init__(self, width, height, obstacles, time_limit, stochastic=None, movie_filename=None, exp_path=None):
         self.seed()
         self.movie_filename = movie_filename
+        self.exp_path = exp_path
         self.action_space = spaces.Discrete(len(ROOMS_ACTIONS))
         self.observation_space = spaces.Box(-numpy.inf, numpy.inf, shape=(NR_CHANNELS,width,height))
         self.agent_position = None
@@ -127,7 +129,7 @@ class RoomsEnv(gym.Env):
                 ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelleft=False, labelbottom=False)
                 return mplfig_to_npimage(fig)
             animation = VideoClip(make_frame, duration=duration)
-            animation.write_videofile(self.movie_filename, fps=1)
+            animation.write_videofile(os.path.join(self.exp_path, self.movie_filename), fps=1)
         
 def read_map_file(path):
     file = pathlib.Path(path)
@@ -147,6 +149,8 @@ def read_map_file(path):
     height += 1
     return width, height, obstacles
 
-def load_env(path, movie_filename, time_limit=100, stochastic=None):
+def load_env(path, movie_filename, exp_path, time_limit=100, stochastic=None):
+    if not os.path.exists(exp_path):
+        os.makedirs(exp_path)
     width, height, obstacles = read_map_file(path)
-    return RoomsEnv(width, height, obstacles, time_limit, stochastic, movie_filename)
+    return RoomsEnv(width, height, obstacles, time_limit, stochastic, movie_filename, exp_path=exp_path)
