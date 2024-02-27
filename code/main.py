@@ -54,7 +54,7 @@ elif algo == "SARSALearner":
     agent = a.SARSALearner(params)
 elif algo == "QLearner": 
     agent = a.QLearner(params)
-training_episodes = 200
+training_episodes = 2000 
 returns = [episode(env, agent, i) for i in range(training_episodes)]
 
 x = range(training_episodes)
