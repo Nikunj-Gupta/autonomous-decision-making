@@ -4,6 +4,7 @@ import matplotlib.pyplot as plot
 import sys 
 import argparse 
 import os 
+import numpy as np 
 
 def episode(env, agent, nr_episode=0):
     state = env.reset()
@@ -29,6 +30,7 @@ parser = argparse.ArgumentParser(description='Optional app description')
 parser.add_argument('--map', type=str, default='easy_0')
 parser.add_argument('--algo', type=str, default='SARSALearner')
 parser.add_argument('--seed', type=int, default=10)
+parser.add_argument('--exploration_strategy', type=str, default='boltzmann')
 args = parser.parse_args()
 
 params = {}
@@ -37,8 +39,9 @@ params = {}
 rooms_instance = args.map 
 algo = args.algo 
 seed = args.seed 
+exploration_strategy = args.exploration_strategy 
 
-exp_path = f"runs/{rooms_instance}/{algo}/seed-{seed}" 
+exp_path = f"runs/{rooms_instance}/{algo}/{exploration_strategy}/seed-{seed}" 
 
 env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"video.mp4", exp_path=exp_path) 
 env.seed(seed=seed)
@@ -47,6 +50,7 @@ params["gamma"] = 0.99
 params["epsilon_decay"] = 0.001
 params["alpha"] = 0.1
 params["env"] = env
+params["exploration_strategy"] = exploration_strategy
 
 if algo == "RandomAgent": 
     agent = a.RandomAgent(params)
@@ -59,6 +63,8 @@ returns = [episode(env, agent, i) for i in range(training_episodes)]
 
 x = range(training_episodes)
 y = returns
+
+np.save(os.path.join(exp_path, "returns.npy"), y) 
 
 plot.plot(x,y)
 plot.title("Progress")
