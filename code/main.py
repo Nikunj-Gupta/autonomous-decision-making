@@ -43,8 +43,8 @@ exploration_strategy = args.exploration_strategy
 
 exp_path = f"runs/{rooms_instance}/{algo}/{exploration_strategy}/seed-{seed}" 
 
-env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"video.mp4", exp_path=exp_path) 
-env.seed(seed=seed)
+env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"video.mp4", exp_path=exp_path, seed=seed) 
+
 params["nr_actions"] = env.action_space.n
 params["gamma"] = 0.99
 params["epsilon_decay"] = 0.001
