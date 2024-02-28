@@ -9,6 +9,7 @@ EXPLORATION_STRATEGIES = ["random_bandit", "epsilon_greedy", "boltzmann","UCB1"]
 for map in MAPS: 
     for seed in SEEDS: 
         for algo in ALGOS: 
-            os.system(f"python main.py --map {map} --algo {algo} --seed {seed}") 
+            for explore in EXPLORATION_STRATEGIES: 
+                os.system(f"python main.py --map {map} --algo {algo} --exploration_strategy {explore} --seed {seed} &") 
 
 
