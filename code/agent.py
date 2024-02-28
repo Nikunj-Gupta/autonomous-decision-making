@@ -47,6 +47,8 @@ class TemporalDifferenceLearningAgent(Agent):
         self.alpha = params["alpha"]
         self.epsilon_decay = params["epsilon_decay"]
         self.epsilon = 1.0
+        self.exploration_strategy = params["exploration_strategy"] 
+        self.action_counts = np.zeros(self.nr_actions) 
         
     def Q(self, state):
         state = np.array2string(state)
@@ -56,7 +58,17 @@ class TemporalDifferenceLearningAgent(Agent):
 
     def policy(self, state):
         Q_values = self.Q(state)
-        return epsilon_greedy(Q_values, None, epsilon=self.epsilon)
+        if self.exploration_strategy=="epsilon_greedy": 
+            return epsilon_greedy(Q_values, None, epsilon=self.epsilon)
+        elif self.exploration_strategy=="UCB1": 
+            action = UCB1(Q_values, self.action_counts) 
+            self.action_counts[action] += 1 
+            return action 
+        elif self.exploration_strategy=="boltzmann": 
+            return boltzmann(Q_values, None)
+            # return boltzmann(Q_values, None, temperature=self.temperature)
+        elif self.exploration_strategy=="random_bandit": 
+            return random_bandit(Q_values)
     
     def decay_exploration(self):
         self.epsilon = max(self.epsilon-self.epsilon_decay, self.epsilon_decay)
