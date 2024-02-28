@@ -68,7 +68,7 @@ class TemporalDifferenceLearningAgent(Agent):
             return boltzmann(Q_values, None)
             # return boltzmann(Q_values, None, temperature=self.temperature)
         elif self.exploration_strategy=="random_bandit": 
-            return random_bandit(Q_values)
+            return random_bandit(Q_values, None)
     
     def decay_exploration(self):
         self.epsilon = max(self.epsilon-self.epsilon_decay, self.epsilon_decay)
