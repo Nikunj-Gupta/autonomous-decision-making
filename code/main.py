@@ -115,7 +115,5 @@ if __name__ == "__main__":
     run_exp(train_env, agent, params, eval=False) 
     agent.save_model(checkpoint=None) 
     eval_agent.load_model(params["eval_load_path"]) 
-    run_exp(eval_env, agent, params, eval=True) 
-    # run_exp(eval_env, eval_agent, params, eval=True) 
-
+    run_exp(eval_env, eval_agent, params, eval=True)
 
