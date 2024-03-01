@@ -36,6 +36,10 @@ class RandomAgent(Agent):
         
     def policy(self, state):
         return random.choice(range(self.nr_actions))
+    def save_model(self, checkpoint=None):
+        pass 
+    def load_model(self, load_path):
+        pass
 
 """
  Autonomous agent base for learning Q-values.
