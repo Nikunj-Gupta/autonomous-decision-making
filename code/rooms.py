@@ -130,6 +130,7 @@ class RoomsEnv(gym.Env):
                 return mplfig_to_npimage(fig)
             animation = VideoClip(make_frame, duration=duration)
             animation.write_videofile(os.path.join(self.exp_path, self.movie_filename), fps=1)
+            plot.close() 
         
 def read_map_file(path):
     file = pathlib.Path(path)
