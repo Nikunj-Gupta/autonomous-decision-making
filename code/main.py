@@ -8,17 +8,25 @@ import numpy as np
 import pickle 
 from tensorboardX import SummaryWriter 
 
-def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None):
-    state = env.reset()
+def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
+    state, _ = env.reset()
     discounted_return = 0
     discount_factor = params["discount_factor"] 
     done = False
     time_step = 0
     while not done:
+        if not eval and params["im_type"]=="counts": 
+            state_s = np.array2string(state)
+            if state_s not in state_count: state_count[state_s] = 1 
+            else: state_count[state_s] += 1 
         # 1. Select action according to policy
         action = agent.policy(state)
         # 2. Execute selected action
         next_state, reward, terminated, truncated, _ = env.step(action)
+        # intrinsic_reward
+        if not eval and params["im_type"]=="counts": 
+            intrinsic_r_counts = 1. / np.sqrt(state_count[np.array2string(state)]) 
+            reward+=params["beta"]*intrinsic_r_counts 
         # 3. Integrate new experience into agent
         if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
         state = next_state
@@ -65,6 +73,8 @@ if __name__ == "__main__":
     parser.add_argument('--training_episodes', type=int, default=2000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
+    parser.add_argument('--im_type', type=str, default="counts")
+    parser.add_argument('--beta', type=float, default=0.1)
     args = parser.parse_args()
 
     rooms_instance = args.map 
@@ -78,8 +88,10 @@ if __name__ == "__main__":
     training_episodes = args.training_episodes 
     eval_episodes = args.eval_episodes 
     eval_freq = args.eval_freq 
+    im_type = args.im_type
+    beta = args.beta
 
-    exp_path = f"runs/{rooms_instance}/{algo}/{exploration_strategy}/run-{run_id}" 
+    exp_path = f"runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/beta-{beta}/run-{run_id}" 
     exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
@@ -107,6 +119,11 @@ if __name__ == "__main__":
     params["eval_load_path"] = os.path.join(exp_path, "model.pkl") 
     params["bayesianUCB_alpha0"] = bayesianUCB_alpha0 
     params["bayesianUCB_beta0"] = bayesianUCB_beta0 
+    params["im_type"] = im_type 
+    params["beta"] = beta 
+
+    print(f"Intrinsic Motivation: {im_type}") 
+
 
     with open(os.path.join(exp_path, "params.pkl"), 'wb') as f:
         pickle.dump(params, f) 

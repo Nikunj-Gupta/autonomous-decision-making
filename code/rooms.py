@@ -52,7 +52,7 @@ class RoomsEnv(gym.Env):
         self.reset()
         
     def state(self):
-        state = numpy.zeros((NR_CHANNELS,self.width,self.height))
+        state = numpy.zeros((NR_CHANNELS,self.width,self.height), dtype=numpy.float32)
         x_agent,y_agent = self.agent_position
         state[AGENT_CHANNEL][x_agent][y_agent] = 1
         x_goal, y_goal = self.goal_position
@@ -99,13 +99,14 @@ class RoomsEnv(gym.Env):
         if new_position not in self.obstacles:
             self.agent_position = new_position
 
-    def reset(self):
+    def reset(self, seed=None):
+        self.seed(seed)
         self.terminated = False
         self.truncated = False
         self.agent_position = random.choice(self.occupiable_positions)
         self.time = 0
         self.state_history.clear()
-        return self.state()
+        return self.state(), {} 
         
     def state_summary(self):
         return {

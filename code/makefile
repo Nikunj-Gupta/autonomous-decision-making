@@ -1,7 +1,15 @@
 all: 
 	clear 
 	# pip install -r req.txt 
-	python main.py --exploration_strategy BayesianUCB1
+	python main.py --map hard_0 --algo QLearner --exploration_strategy epsilon_greedy --run_id 500 --beta 0.02 
+	# python main_sb3.py --algo PPO & 
+	# python main_sb3.py --algo A2C & 
+run_im: 
+	clear 
+	python runs_im.py 
+run_sb3: 
+	clear 
+	python runs_sb3.py 
 run: 
 	clear 
 	python runs.py 
