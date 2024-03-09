@@ -6,8 +6,9 @@ import argparse
 import os 
 import numpy as np 
 import pickle 
+from tensorboardX import SummaryWriter 
 
-def episode(env, agent, nr_episode=0, params=None, eval=False):
+def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None):
     state = env.reset()
     discounted_return = 0
     discount_factor = params["discount_factor"] 
@@ -24,19 +25,23 @@ def episode(env, agent, nr_episode=0, params=None, eval=False):
         done = terminated or truncated
         discounted_return += (discount_factor**time_step)*reward
         time_step += 1
-    if not eval: print("Train Ep ", nr_episode, ":", discounted_return)
-    else: print("Eval Ep ", nr_episode, ":", discounted_return) 
+    if not eval: 
+        print("Train Ep ", nr_episode, ":", discounted_return)
+        writer.add_scalar('train/discounted_return', discounted_return, nr_episode) 
+    else: 
+        print("Eval Ep ", nr_episode, ":", discounted_return) 
+        writer.add_scalar('eval/discounted_return', discounted_return, nr_episode) 
     if ((not eval) and (nr_episode%params["save_freq"]==0)): 
         agent.save_model(checkpoint=nr_episode) 
     return discounted_return
 
-def run_exp(env, agent, params, eval=False): 
+def run_exp(env, agent, params, eval=False, writer=None): 
     num_episodes=params["training_episodes"] if not eval else params["eval_episodes"] 
     save_name="train_returns.npy" if not eval else "eval_returns.npy" 
     plot_title="Training--"+params["exp_name"] if not eval else "Evaluation--"+params["exp_name"]  
     plot_filename = "train_plot.png" if not eval else "eval_plot.png" 
     exp_path = params["exp_path"] 
-    returns = [episode(env, agent, i, params, eval) for i in range(num_episodes)] 
+    returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     x = range(num_episodes)
     y = returns
     np.save(os.path.join(exp_path, save_name), y) 
@@ -58,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_freq', type=int, default=100)
     parser.add_argument('--discount_factor', type=float, default=0.99)
     parser.add_argument('--training_episodes', type=int, default=2000)
-    parser.add_argument('--eval_episodes', type=int, default=10)
+    parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
     args = parser.parse_args()
 
@@ -66,6 +71,8 @@ if __name__ == "__main__":
     algo = args.algo 
     run_id = args.run_id 
     exploration_strategy = args.exploration_strategy 
+    bayesianUCB_alpha0 = 1 # assuming/hard-coding alpha0 = 1 
+    bayesianUCB_beta0 = 1 # assuming/hard-coding beta0 = 1 
     save_freq = args.save_freq 
     discount_factor = args.discount_factor 
     training_episodes = args.training_episodes 
@@ -98,6 +105,8 @@ if __name__ == "__main__":
     params["eval_episodes"] = eval_episodes 
     params["eval_freq"] = eval_freq 
     params["eval_load_path"] = os.path.join(exp_path, "model.pkl") 
+    params["bayesianUCB_alpha0"] = bayesianUCB_alpha0 
+    params["bayesianUCB_beta0"] = bayesianUCB_beta0 
 
     with open(os.path.join(exp_path, "params.pkl"), 'wb') as f:
         pickle.dump(params, f) 
@@ -112,8 +121,9 @@ if __name__ == "__main__":
         agent = a.QLearner(params)
         eval_agent = a.QLearner(params) 
 
-    run_exp(train_env, agent, params, eval=False) 
+    writer = SummaryWriter(logdir=os.path.join(exp_path, "summaries/")) 
+    run_exp(train_env, agent, params, eval=False, writer=writer) 
     agent.save_model(checkpoint=None) 
     eval_agent.load_model(params["eval_load_path"]) 
-    run_exp(eval_env, eval_agent, params, eval=True)
+    run_exp(eval_env, eval_agent, params, eval=True, writer=writer)
 

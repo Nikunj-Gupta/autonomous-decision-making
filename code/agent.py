@@ -56,6 +56,10 @@ class TemporalDifferenceLearningAgent(Agent):
         self.exploration_strategy = params["exploration_strategy"] 
         self.exp_path = params["exp_path"] 
         self.action_counts = np.zeros(self.nr_actions) 
+        self.bayesianUCB_alpha0 = params["bayesianUCB_alpha0"]
+        self.bayesianUCB_beta0 = params["bayesianUCB_beta0"]
+        self.bayesianUCB_alphas = np.ones(self.nr_actions)*self.bayesianUCB_alpha0  
+        self.bayesianUCB_betas = np.ones(self.nr_actions)*self.bayesianUCB_beta0 
         
     def Q(self, state):
         state = np.array2string(state)
@@ -76,6 +80,8 @@ class TemporalDifferenceLearningAgent(Agent):
             # return boltzmann(Q_values, None, temperature=self.temperature)
         elif self.exploration_strategy=="random_bandit": 
             return random_bandit(Q_values, None)
+        elif self.exploration_strategy=="BayesianUCB1": 
+            return BayesianUCB1(Q_values, None, self.bayesianUCB_alphas, self.bayesianUCB_betas) # when do we reinitialize alphas, betas? 
     
     def decay_exploration(self):
         self.epsilon = max(self.epsilon-self.epsilon_decay, self.epsilon_decay)
@@ -102,6 +108,8 @@ class SARSALearner(TemporalDifferenceLearningAgent):
         
     def update(self, state, action, reward, next_state, terminated, truncated):
         self.decay_exploration()
+        if reward == 1: self.bayesianUCB_alphas[action]+=1 
+        else: self.bayesianUCB_betas[action]+=1 
         Q_old = self.Q(state)[action]
         TD_target = reward
         if not terminated:
@@ -118,6 +126,8 @@ class QLearner(TemporalDifferenceLearningAgent):
         
     def update(self, state, action, reward, next_state, terminated, truncated):
         self.decay_exploration()
+        if reward == 1: self.bayesianUCB_alphas[action]+=1 
+        else: self.bayesianUCB_betas[action]+=1 
         Q_old = self.Q(state)[action]
         TD_target = reward
         if not terminated:

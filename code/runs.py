@@ -1,10 +1,13 @@
 import os 
 
 PARALLEL=True # False
-RUNS = list(range(1, 21)) 
-MAPS = ["easy_0", "easy_1", "medium_0", "medium_1", "hard_0", "hard_1"] 
-ALGOS = ["RandomAgent", "SARSALearner", "QLearner"] 
-EXPLORATION_STRATEGIES = ["random_bandit", "epsilon_greedy", "boltzmann","UCB1"] 
+RUNS = list(range(1, 5)) 
+# MAPS = ["easy_0", "easy_1", "medium_0", "medium_1", "hard_0", "hard_1"] 
+# ALGOS = ["RandomAgent", "SARSALearner", "QLearner"] 
+# EXPLORATION_STRATEGIES = ["random_bandit", "epsilon_greedy", "boltzmann","UCB1"] 
+MAPS = ["medium_0", "medium_1", "hard_0", "hard_1"] 
+ALGOS = ["SARSALearner", "QLearner"] 
+EXPLORATION_STRATEGIES = ["epsilon_greedy", "boltzmann","UCB1"] 
 
 for m in MAPS: 
     for run_id in RUNS: 
