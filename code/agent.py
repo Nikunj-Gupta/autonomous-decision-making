@@ -75,6 +75,10 @@ class TemporalDifferenceLearningAgent(Agent):
             action = UCB1(Q_values, self.action_counts) 
             self.action_counts[action] += 1 
             return action 
+        elif self.exploration_strategy=="UCB1new": 
+            action = UCB1new(Q_values, self.action_counts) 
+            self.action_counts[action] += 1 
+            return action 
         elif self.exploration_strategy=="boltzmann": 
             return boltzmann(Q_values, None)
             # return boltzmann(Q_values, None, temperature=self.temperature)

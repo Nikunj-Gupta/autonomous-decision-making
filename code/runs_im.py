@@ -4,7 +4,7 @@ PARALLEL=True # False
 RUNS = list(range(1, 10)) 
 MAPS = ["easy_0", "easy_1", "medium_0", "medium_1", "hard_0", "hard_1"] 
 ALGOS = ["SARSALearner", "QLearner"] 
-EXPLORATION_STRATEGIES = ["epsilon_greedy", "boltzmann", "UCB1"] 
+EXPLORATION_STRATEGIES = ["epsilon_greedy", "boltzmann", "UCB1", "UCB1new"] 
 IMTYPES = ["rapid", "baseline"] 
 # BETAS = list(map(lambda x: x * 0.1, list(range(1, 11)))) 
 
