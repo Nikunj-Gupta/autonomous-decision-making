@@ -14,19 +14,39 @@ def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, stat
     discount_factor = params["discount_factor"] 
     done = False
     time_step = 0
+
+    episode_state_count = {} 
     while not done:
         if not eval and params["im_type"]=="counts": 
             state_s = np.array2string(state)
             if state_s not in state_count: state_count[state_s] = 1 
             else: state_count[state_s] += 1 
+
+        if not eval and params["im_type"]=="rapid": 
+            w0, w1, w2 = 1, 0.1, 0.1 
+            state_s = np.array2string(state)
+            if state_s not in state_count: state_count[state_s] = 1 
+            else: state_count[state_s] += 1 
+            if state_s not in episode_state_count: episode_state_count[state_s] = 1 
+            else: episode_state_count[state_s] += 1 
+
         # 1. Select action according to policy
         action = agent.policy(state)
         # 2. Execute selected action
         next_state, reward, terminated, truncated, _ = env.step(action)
+
         # intrinsic_reward
         if not eval and params["im_type"]=="counts": 
             intrinsic_r_counts = 1. / np.sqrt(state_count[np.array2string(state)]) 
             reward+=params["beta"]*intrinsic_r_counts 
+
+        if not eval and params["im_type"]=="rapid": 
+            global_score = 1. / np.sqrt(state_count[np.array2string(state)]) 
+            local_score = len(episode_state_count.keys())/sum(episode_state_count.values()) 
+            if reward==1: reward = w0*reward + w1*local_score + w2*global_score 
+
+        if not eval and params["im_type"]=="baseline": 
+            if reward==1: reward = 2  
         # 3. Integrate new experience into agent
         if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
         state = next_state
@@ -64,16 +84,16 @@ def run_exp(env, agent, params, eval=False, writer=None):
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
-    parser.add_argument('--map', type=str, default='easy_0')
-    parser.add_argument('--algo', type=str, default='QLearner')
-    parser.add_argument('--run_id', type=int, default=10)
-    parser.add_argument('--exploration_strategy', type=str, default='epsilon_greedy')
+    parser.add_argument('--map', type=str, default='medium_0')
+    parser.add_argument('--algo', type=str, default='SARSALearner')
+    parser.add_argument('--run_id', type=int, default=3)
+    parser.add_argument('--exploration_strategy', type=str, default='UCB1')
     parser.add_argument('--save_freq', type=int, default=100)
     parser.add_argument('--discount_factor', type=float, default=0.99)
     parser.add_argument('--training_episodes', type=int, default=2000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
-    parser.add_argument('--im_type', type=str, default="counts")
+    parser.add_argument('--im_type', type=str, default="rapid")
     parser.add_argument('--beta', type=float, default=0.1)
     args = parser.parse_args()
 
@@ -91,8 +111,8 @@ if __name__ == "__main__":
     im_type = args.im_type
     beta = args.beta
 
-    exp_path = f"runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/beta-{beta}/run-{run_id}" 
-    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--run_{run_id}" 
+    exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
+    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
     eval_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"eval_video.mp4", exp_path=exp_path) 
