@@ -1,7 +1,8 @@
 all: 
 	clear 
 	# pip install -r req.txt 
-	python main.py --map hard_0 --algo QLearner --exploration_strategy epsilon_greedy --run_id 500 --beta 0.02 
+	# python grid_to_graph.py 
+	python main.py  
 	# python main_sb3.py --algo PPO & 
 	# python main_sb3.py --algo A2C & 
 run_im: 
@@ -16,6 +17,11 @@ run:
 plot: 
 	clear 
 	python plots.py 
+rapid-test: 
+	for number in 1 ; do \
+		python main.py --run_id $$number --im_type baseline --exploration_strategy UCB1new & \
+	done
+
 test: 
 	# python main.py --map medium_0 --algo SARSALearner --exploration_strategy UCB1 --run_id 1 & 
 	# python main.py --map medium_0 --algo SARSALearner --exploration_strategy UCB1 --run_id 2 & 
