@@ -139,3 +139,73 @@ class QLearner(TemporalDifferenceLearningAgent):
             TD_target += self.gamma*Q_next
         TD_error = TD_target - Q_old
         self.Q(state)[action] += self.alpha*TD_error
+
+
+class TD0Learner(TemporalDifferenceLearningAgent):
+    def update(self, state, action, reward, next_state, terminated, truncated):
+        self.decay_exploration()
+        Q_old = self.Q(state)[action]
+        TD_target = reward
+        if not terminated:
+            # In TD(0) learning, the TD target is based only on the immediate reward and
+            # the estimated value of the next state.
+            TD_target += self.gamma * np.max(self.Q(next_state))
+        TD_error = TD_target - Q_old
+        self.Q(state)[action] += self.alpha * TD_error
+
+class TD1Learner(TemporalDifferenceLearningAgent):
+    def update(self, state, action, reward, next_state, terminated, truncated):
+        self.decay_exploration()
+        Q_old = self.Q(state)[action]
+        TD_target = reward
+        if not terminated:
+            # In TD(1) learning, the TD target is based on the immediate reward and the value
+            next_action = np.argmax(self.Q(next_state))  # Greedy action selection for next state
+            Q_next = self.Q(next_state)[next_action]
+            TD_target += self.gamma * Q_next
+        TD_error = TD_target - Q_old
+        self.Q(state)[action] += self.alpha * TD_error
+
+class TDLambdaForwardLearner(TemporalDifferenceLearningAgent):
+    def __init__(self, params):
+        super().__init__(params)
+        self.lambda_value = 0.5
+        self.eligibility_traces = {}
+
+    def update(self, state, action, reward, next_state, terminated, truncated):
+        self.decay_exploration()
+        Q_old = self.Q(state)[action]
+        TD_target = reward
+        if not terminated:
+            Q_next = self.Q(next_state)[self.policy(next_state)]
+            TD_target += self.gamma * Q_next
+            for s, a in self.eligibility_traces:
+                self.Q(s)[a] += self.alpha * (TD_target - Q_old) * self.eligibility_traces[(s, a)]
+                self.eligibility_traces[(s, a)] *= self.gamma * self.lambda_value
+            if (state, action) not in self.eligibility_traces:
+                self.eligibility_traces[(state, action)] = 1.0
+        TD_error = TD_target - Q_old
+        self.Q(state)[action] += self.alpha * TD_error
+
+class TDLambdaBackwardLearner(TemporalDifferenceLearningAgent):
+    def __init__(self, params):
+        super().__init__(params)
+        self.lambda_value = 0.5
+        self.eligibility_traces = {}
+
+    def update(self, state, action, reward, next_state, terminated, truncated):
+        self.decay_exploration()
+        Q_old = self.Q(state)[action]
+        TD_target = reward
+        if not terminated:
+            Q_next = self.Q(next_state)[self.policy(next_state)]
+            TD_target += self.gamma * Q_next
+            for s, a in self.eligibility_traces:
+                self.Q(s)[a] += self.alpha * (TD_target - Q_old) * self.eligibility_traces[(s, a)]
+            if (state, action) not in self.eligibility_traces:
+                self.eligibility_traces[(state, action)] = 0.0
+            self.eligibility_traces[(state, action)] += 1.0
+            for s, a in self.eligibility_traces:
+                self.eligibility_traces[(s, a)] *= self.gamma * self.lambda_value
+        TD_error = TD_target - Q_old
+        self.Q(state)[action] += self.alpha * TD_error
