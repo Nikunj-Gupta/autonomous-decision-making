@@ -8,6 +8,52 @@ import numpy as np
 import pickle 
 from tensorboardX import SummaryWriter 
 
+def subgoal_achieved(state, subgoal): 
+    if state[0][subgoal[0], subgoal[1]] == 1: 
+        return True 
+    return False 
+
+def gen_subgoals(state): 
+    return [(5, 3), (9, 6), (9, 9)] 
+
+def preprocess(state, subgoal): 
+    coord_x, coord_y = np.argwhere(state[1]==1)[0] 
+    state[1][coord_x, coord_y] = 0 
+    state[1][subgoal[0], subgoal[1]] = 1 
+    return state 
+
+def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
+    state, _ = env.reset()
+    discounted_return = 0
+    discount_factor = params["discount_factor"] 
+    done = False
+    time_step = 0
+    subgoals = gen_subgoals(state) 
+    for k, subgoal in enumerate(subgoals): 
+        while not done:
+            env.goal_position = subgoal 
+            state, _ = env.reset()
+            # state = preprocess(state, subgoal) 
+            # 1. Select action according to policy
+            action = agent.policy(state)
+            # 2. Execute selected action
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            # 3. Integrate new experience into agent
+            if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
+            state = next_state
+            done = terminated or truncated
+            discounted_return += (discount_factor**time_step)*reward
+            time_step += 1
+        if not eval: 
+            print("Train Ep ", nr_episode, ":", discounted_return)
+            writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
+        else: 
+            print("Eval Ep ", nr_episode, ":", discounted_return) 
+            writer.add_scalar(f'eval/discounted_return', discounted_return, nr_episode) 
+        if ((not eval) and (nr_episode%params["save_freq"]==0)): 
+            agent.save_model(checkpoint=nr_episode) 
+    return discounted_return
+
 def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
     state, _ = env.reset()
     discounted_return = 0
@@ -63,13 +109,14 @@ def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, stat
         agent.save_model(checkpoint=nr_episode) 
     return discounted_return
 
-def run_exp(env, agent, params, eval=False, writer=None): 
+def run_exp(env, agent, params, eval=False, writer=None, subgoals=False): 
     num_episodes=params["training_episodes"] if not eval else params["eval_episodes"] 
     save_name="train_returns.npy" if not eval else "eval_returns.npy" 
     plot_title="Training--"+params["exp_name"] if not eval else "Evaluation--"+params["exp_name"]  
     plot_filename = "train_plot.png" if not eval else "eval_plot.png" 
     exp_path = params["exp_path"] 
-    returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
+    if subgoals: returns = [episode_subgoals(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
+    else: returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     x = range(num_episodes)
     y = returns
     np.save(os.path.join(exp_path, save_name), y) 
@@ -86,15 +133,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
     parser.add_argument('--map', type=str, default='medium_0')
     parser.add_argument('--algo', type=str, default='SARSALearner')
-    parser.add_argument('--run_id', type=int, default=3)
+    parser.add_argument('--run_id', type=int, default=10)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')
     parser.add_argument('--save_freq', type=int, default=100)
     parser.add_argument('--discount_factor', type=float, default=0.99)
     parser.add_argument('--training_episodes', type=int, default=2000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
-    parser.add_argument('--im_type', type=str, default="rapid")
+    parser.add_argument('--im_type', type=str, default=None)
     parser.add_argument('--beta', type=float, default=0.1)
+    parser.add_argument('--subgoals', type=int, default=1)
     args = parser.parse_args()
 
     rooms_instance = args.map 
@@ -110,9 +158,13 @@ if __name__ == "__main__":
     eval_freq = args.eval_freq 
     im_type = args.im_type
     beta = args.beta
+    subgoals = args.subgoals 
 
-    exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
-    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
+    # exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
+    # exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
+
+    exp_path = f"graph-runs/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
+    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--subgoals--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
     eval_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"eval_video.mp4", exp_path=exp_path) 
@@ -159,8 +211,8 @@ if __name__ == "__main__":
         eval_agent = a.QLearner(params) 
 
     writer = SummaryWriter(logdir=os.path.join(exp_path, "summaries/")) 
-    run_exp(train_env, agent, params, eval=False, writer=writer) 
+    run_exp(train_env, agent, params, eval=False, writer=writer, subgoals=subgoals) 
     agent.save_model(checkpoint=None) 
     eval_agent.load_model(params["eval_load_path"]) 
-    run_exp(eval_env, eval_agent, params, eval=True, writer=writer)
+    run_exp(eval_env, eval_agent, params, eval=True, writer=writer, subgoals=subgoals)
 
