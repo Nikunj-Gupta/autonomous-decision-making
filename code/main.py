@@ -25,15 +25,16 @@ def preprocess(state, subgoal):
 
 def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
     state, _ = env.reset()
+    final_goal = env.goal_position 
     discounted_return = 0
     discount_factor = params["discount_factor"] 
     done = False
     time_step = 0
     subgoals = gen_subgoals(env) 
-    for k, subgoal in enumerate(subgoals): 
+    subgoals = subgoals[1:]
+    for subgoal in subgoals: 
         while not done:
             env.goal_position = subgoal 
-            state, _ = env.reset()
             # state = preprocess(state, subgoal) 
             # 1. Select action according to policy
             action = agent.policy(state)
@@ -45,14 +46,15 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
             done = terminated or truncated
             discounted_return += (discount_factor**time_step)*reward
             time_step += 1
-        if not eval: 
-            print("Train Ep ", nr_episode, ":", discounted_return)
-            writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
-        else: 
-            print("Eval Ep ", nr_episode, ":", discounted_return) 
-            writer.add_scalar(f'eval/discounted_return', discounted_return, nr_episode) 
-        if ((not eval) and (nr_episode%params["save_freq"]==0)): 
-            agent.save_model(checkpoint=nr_episode) 
+    if not eval: 
+        print("Train Ep ", nr_episode, ":", discounted_return)
+        writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
+    else: 
+        print("Eval Ep ", nr_episode, ":", discounted_return) 
+        writer.add_scalar(f'eval/discounted_return', discounted_return, nr_episode) 
+    if ((not eval) and (nr_episode%params["save_freq"]==0)): 
+        agent.save_model(checkpoint=nr_episode) 
+    env.goal_position = final_goal 
     return discounted_return
 
 def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
@@ -132,7 +134,7 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
-    parser.add_argument('--map', type=str, default='medium_0')
+    parser.add_argument('--map', type=str, default='hard_0')
     parser.add_argument('--algo', type=str, default='SARSALearner')
     parser.add_argument('--run_id', type=int, default=10)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')

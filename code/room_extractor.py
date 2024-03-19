@@ -75,6 +75,7 @@ def room_layout(envior):
     goal_pos = env.goal_position
     # print(goal_pos)
     empty_points = env.occupiable_positions
+    empty_points = list(set(empty_points))
     # print(empty_points)
     empty_points.append(goal_pos)
     # print(empty_points)

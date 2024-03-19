@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import room_extractor
 
 
-def graph_node(substate={}): 
+def graph_node(substate={}, show=False): 
     nodes = list(substate.keys()) 
-    print(nodes)
+    # print(nodes)
     nodes_dict = {} 
     for i,n in enumerate(nodes): 
         nodes_dict[i] = n 
@@ -25,10 +25,11 @@ def graph_node(substate={}):
                 if not (sorted(substate[nodes[ni]]["rooms"]) == sorted(substate[nodes[nj]]["rooms"])): 
                     if set(substate[nodes[ni]]["rooms"]) & set(substate[nodes[nj]]["rooms"]): 
                         adjacency_matrix[ni, nj] = 1 
-    print(adjacency_matrix) 
-    G=nx.from_numpy_array(adjacency_matrix) 
-    nx.draw(G, labels=nodes_dict, with_labels=True) 
-    plt.show() 
+    if show: 
+        print(adjacency_matrix) 
+        G=nx.from_numpy_array(adjacency_matrix) 
+        nx.draw(G, labels=nodes_dict, with_labels=True) 
+        plt.show() 
 
     return adjacency_matrix ,nodes_dict
 
