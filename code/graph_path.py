@@ -1,9 +1,14 @@
 from collections import deque
 import gen_graph
 
-def bfs_shortest_path(adj_matrix, source, goal):
+def bfs_shortest_path(adj_matrix, node_list):
 
   # Initialize variables
+  node_to_index = [i for i, node in enumerate(node_list)]  # Map nodes to indices
+
+  source = node_to_index[-2]
+  goal = node_to_index[-1]
+
   n = len(adj_matrix)  # Number of vertices
   visited = [False] * n  # Keeps track of visited vertices
   parent = [-1] * n  # Stores parent of each vertex for path reconstruction

@@ -44,20 +44,19 @@ adj_matrix = [
   [0, 0, 1, 1],
   [0, 0, 1, 1],
   [1, 1, 0, 1],
-  [1, 1, 0, 0]
+  [1, 1, 1, 0]
 ]
-node_list = [(5, 3), (5, 6), (9, 3), (9, 8)]
+node_list = [(5, 3), (5, 6), (6, 8), (9, 8)]
 
 shortest_path = bfs_shortest_path(adj_matrix, node_list)
-
-if shortest_path:
-   print("Shortest path from", node_list[-2], "to", node_list[-1], ":", shortest_path)
-else:
-   print("No path exists from", node_list[-2], "to", node_list[-2])
 
 path = []
 
 for i in shortest_path:
   path.append(node_list[i])
 
-print(path)
+
+if shortest_path:
+   print("Shortest path from", node_list[-2], "to", node_list[-1], ":", path)
+else:
+   print("No path exists from", node_list[-2], "to", node_list[-2])
