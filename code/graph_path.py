@@ -1,4 +1,5 @@
 from collections import deque
+import gen_graph
 
 def bfs_shortest_path(adj_matrix, source, goal):
 
@@ -33,19 +34,14 @@ def bfs_shortest_path(adj_matrix, source, goal):
   # No path found
   return None
 
-# Example usage
-adj_matrix = [
-  [0, 0, 1, 1],
-  [0, 0, 1, 1],
-  [1, 1, 0, 1],
-  [1, 1, 0, 0]
-]
-source = 2
-goal = 3
 
-shortest_path = bfs_shortest_path(adj_matrix, source, goal)
+def goal_path(envior_state):
+  
+  path = []
+  adj_matrix, labels = gen_graph.graph_adjancy(envior_state)
+  path_list = bfs_shortest_path(adj_matrix, labels)
+  for i in path_list:
+    path.append(labels[i])
 
-if shortest_path:
-  print("Shortest path from", source, "to", goal, ":", shortest_path)
-else:
-  print("No path exists from", source, "to", goal)
+  return path
+

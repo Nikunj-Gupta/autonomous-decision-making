@@ -1,9 +1,10 @@
 import numpy as np 
 import networkx as nx 
 import matplotlib.pyplot as plt
+import room_extractor
 
 
-def gen_subgoals(substate={}): 
+def graph_node(substate={}): 
     nodes = list(substate.keys()) 
     print(nodes)
     nodes_dict = {} 
@@ -28,6 +29,16 @@ def gen_subgoals(substate={}):
     G=nx.from_numpy_array(adjacency_matrix) 
     nx.draw(G, labels=nodes_dict, with_labels=True) 
     plt.show() 
+
+    return adjacency_matrix ,nodes_dict
+
+def graph_adjancy(env_state):
+    room_info_dict = room_extractor.room_layout(env_state)
+    adj_matrix, labels = graph_node(room_info_dict["node_info"])
+
+    return adj_matrix, labels
+
+
 
 
 if __name__ == "__main__": 
@@ -134,7 +145,7 @@ if __name__ == "__main__":
         } 
     }
 
-    # gen_subgoals(medium_1) 
-    gen_subgoals(medium_0) 
-    # gen_subgoals(hard_0) 
+    graph_node(medium_1) 
+    # graph_node(medium_0) 
+    # graph_node(hard_0) 
 

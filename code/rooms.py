@@ -151,8 +151,9 @@ def read_map_file(path):
     height += 1
     return width, height, obstacles
 
-def load_env(path, movie_filename, exp_path, time_limit=100, stochastic=None, seed=None):
-    if not os.path.exists(exp_path):
-        os.makedirs(exp_path)
+def load_env(path, movie_filename=None, exp_path=None, time_limit=100, stochastic=None, seed=None):
+    if exp_path is not None:
+        if not os.path.exists(exp_path):
+            os.makedirs(exp_path)
     width, height, obstacles = read_map_file(path)
     return RoomsEnv(width, height, obstacles, time_limit, stochastic, movie_filename, exp_path=exp_path, seed=seed)

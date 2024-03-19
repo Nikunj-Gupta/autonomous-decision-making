@@ -6,6 +6,7 @@ import argparse
 import os 
 import numpy as np 
 import pickle 
+import graph_path
 from tensorboardX import SummaryWriter 
 
 def subgoal_achieved(state, subgoal): 
@@ -13,8 +14,8 @@ def subgoal_achieved(state, subgoal):
         return True 
     return False 
 
-def gen_subgoals(state): 
-    return [(5, 3), (9, 6), (9, 9)] 
+def gen_subgoals(env): 
+    return graph_path.goal_path(env)
 
 def preprocess(state, subgoal): 
     coord_x, coord_y = np.argwhere(state[1]==1)[0] 
@@ -28,7 +29,7 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
     discount_factor = params["discount_factor"] 
     done = False
     time_step = 0
-    subgoals = gen_subgoals(state) 
+    subgoals = gen_subgoals(env) 
     for k, subgoal in enumerate(subgoals): 
         while not done:
             env.goal_position = subgoal 

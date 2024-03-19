@@ -68,42 +68,88 @@ def split_into_rooms(data, room_number=1, sublists=None):
 
 
 # Usage:
-env = rooms.load_env(f"layouts/medium_0.txt", f"medium_o.mp4")
-agent_pos = env.agent_position
-# print(agent_pos)
-goal_pos = env.goal_position
-# print(goal_pos)
-empty_points = env.occupiable_positions
-# print(empty_points)
-empty_points.append(goal_pos)
-# print(empty_points)
-wall_point = env.obstacles
-exits = find_exits(wall_point)
-points = [item for item in empty_points if item not in exits]
+def room_layout(envior):
+    env = envior
+    agent_pos = env.agent_position
+    # print(agent_pos)
+    goal_pos = env.goal_position
+    # print(goal_pos)
+    empty_points = env.occupiable_positions
+    # print(empty_points)
+    empty_points.append(goal_pos)
+    # print(empty_points)
+    wall_point = env.obstacles
 
-# Split the data into sublists
-map_rooms = split_into_rooms(points.copy())
+    agent_room = {}
+    goal_room = {}
 
-# Print the sublists
-for room_number, sublist in map_rooms.items():
-    print(f"Room {room_number}: {sublist}")
+    exits = find_exits(wall_point)
+    points = [item for item in empty_points if item not in exits]
 
-room_way = adjacent_room(map_rooms, exits)
+    # Split the data into sublists
+    map_rooms = split_into_rooms(points.copy())
 
-for exit_g, rooms_c in room_way.items():
-    print(f"Exit_gate {exit_g}: {rooms_c}")
+    room_way = adjacent_room(map_rooms, exits)
 
-agent_room = {}
-goal_room = {}
+    for room_number, (room_name, room_points) in enumerate(map_rooms.items(), start=1):
+        if agent_pos in room_points:
+            agent_room.setdefault(agent_pos, []).append("Room - " + str(room_number))
+        if goal_pos in room_points:
+            goal_room.setdefault(goal_pos, []).append("Room - " + str(room_number))
 
-for room_number, (room_name, room_points) in enumerate(map_rooms.items(), start=1):
-    if agent_pos in room_points:
-        agent_room.setdefault(agent_pos, []).append("Room - " + str(room_number))
-    if goal_pos in room_points:
-        goal_room.setdefault(goal_pos, []).append("Room - " + str(room_number))
+    combined_data = {}
+    combined_data["room_info"] = {}
+    # Room information (assuming map_rooms represents room data)
+    for room_number, coordinates in map_rooms.items():
+        combined_data["room_info"][room_number] = {
+            "type": "Room",
+            "rooms": coordinates
+        }
 
-for A, B in agent_room.items():
-    print(f"Agent_room {A}: {B}")
+    combined_data["node_info"] = {}
+    # Exit gate information (assuming room_way represents exit data)
+    for exit_gate, connected_rooms in room_way.items():
+        combined_data["node_info"][exit_gate] = {
+            "type": "Exit_gate",
+            "rooms": connected_rooms
+        }
 
-for A, B in goal_room.items():
-    print(f"Goal_room {A}: {B}")
+    # Agent and goal room information (assuming agent_room and goal_room represent their respective data)
+    for location, room_names in agent_room.items():
+        combined_data["node_info"][location] = {
+            "type": "Agent_room",  
+            "rooms": room_names
+        }
+
+    # Agent and goal room information (assuming agent_room and goal_room represent their respective data)
+    for location, room_names in goal_room.items():
+        combined_data["node_info"][location] = {
+            "type": "Goal_room",  
+            "rooms": room_names
+        }
+
+    return combined_data
+
+# if __name__ == "__main__": 
+    # Print the resulting structure
+    # print(combined_data)
+
+
+    # # Print the sublists
+    # for room_number, sublist in map_rooms.items():
+    #     print(f"Room {room_number}: {sublist}")
+
+    # for exit_g, rooms_c in room_way.items():
+    #     print(f"Exit_gate {exit_g}: {rooms_c}")
+
+
+    # for A, B in agent_room.items():
+    #     print(f"Agent_room {A}: {B}")
+
+    # for A, B in goal_room.items():
+    #     print(f"Goal_room {A}: {B}")
+
+    # print(map_rooms)
+    # print(room_way)
+    # print(agent_room)
+    # print(goal_room)
