@@ -2,11 +2,13 @@ import numpy as np
 import networkx as nx 
 import matplotlib.pyplot as plt
 import room_extractor
+from math import sqrt
 
 
-def graph_node(substate={}): 
+def graph_node(substate={}):
+    # print(substate) 
     nodes = list(substate.keys()) 
-    print(nodes)
+    # print(nodes)
     nodes_dict = {} 
     for i,n in enumerate(nodes): 
         nodes_dict[i] = n 
@@ -16,19 +18,60 @@ def graph_node(substate={}):
             if ni == nj: 
                 continue 
             if len(substate[nodes[ni]]["rooms"]) == 1: 
+                # print(substate[nodes[ni]]["rooms"][0])
                 if substate[nodes[ni]]["rooms"][0] in substate[nodes[nj]]["rooms"]: 
-                    adjacency_matrix[ni, nj] = 1 
+                    x1, y1 = nodes[ni]
+                    x2, y2 = nodes[nj]
+                    # Calculate the distance using the distance formula
+                    distance = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+                    adjacency_matrix[ni, nj] = distance 
+
             if len(substate[nodes[nj]]["rooms"]) == 1: 
                 if substate[nodes[nj]]["rooms"][0] in substate[nodes[ni]]["rooms"]: 
-                    adjacency_matrix[ni, nj] = 1 
+                    x1, y1 = nodes[ni]
+                    x2, y2 = nodes[nj]
+                    # Calculate the distance using the distance formula
+                    distance = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+                    adjacency_matrix[ni, nj] = distance 
+                    
             if (len(substate[nodes[ni]]["rooms"]) == 2) and (len(substate[nodes[nj]]["rooms"]) == 2): 
                 if not (sorted(substate[nodes[ni]]["rooms"]) == sorted(substate[nodes[nj]]["rooms"])): 
                     if set(substate[nodes[ni]]["rooms"]) & set(substate[nodes[nj]]["rooms"]): 
-                        adjacency_matrix[ni, nj] = 1 
-    print(adjacency_matrix) 
+                        x1, y1 = nodes[ni]
+                        x2, y2 = nodes[nj]
+                        # Calculate the distance using the distance formula
+                        distance = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+                        adjacency_matrix[ni, nj] = distance 
+
+    # print(adjacency_matrix) 
     G=nx.from_numpy_array(adjacency_matrix) 
-    nx.draw(G, labels=nodes_dict, with_labels=True) 
-    plt.show() 
+    # Access the agent node using its position in the dictionary
+    agent_node = list(nodes_dict.keys())[-2] 
+    #The goal node is the last entry 
+    goal_node = list(nodes_dict.keys())[-1]
+
+    # Define a custom node color mapping based on node names
+    node_colors = [
+        "red" if node == agent_node else  # Color the agent node red
+        "green" if node == goal_node else  # Color the goal node green
+        "lightblue"  # Default color for other nodes
+        for node in G.nodes()
+    ]
+
+    # Draw the graph with custom node colors
+    nx.draw(G, labels=nodes_dict, with_labels=True, node_color=node_colors)
+    plt.show()
+
+    # # Find the maximum value (excluding zeros)
+    # max_value = np.max(adjacency_matrix[adjacency_matrix != 0])
+
+    # # Invert non-zero elements by subtracting them from the maximum value
+    # inverted_matrix = max_value - adjacency_matrix + 1
+
+    # # Set zeros back to zero
+    # inverted_matrix[inverted_matrix == max_value + 1] = 0
+
+    # # print(inverted_matrix) 
 
     return adjacency_matrix ,nodes_dict
 
@@ -145,7 +188,9 @@ if __name__ == "__main__":
         } 
     }
 
-    graph_node(medium_1) 
+    hard_1 ={(12, 1): {'type': 'Exit_gate', 'rooms': ['Room - 3', 'Room - 5']}, (6, 4): {'type': 'Exit_gate', 'rooms': ['Room - 1', 'Room - 3']}, (18, 5): {'type': 'Exit_gate', 'rooms': ['Room - 5', 'Room - 7']}, (1, 6): {'type': 'Exit_gate', 'rooms': ['Room - 1', 'Room - 2']}, (17, 6): {'type': 'Exit_gate', 'rooms': ['Room - 5', 'Room - 6']}, (10, 7): {'type': 'Exit_gate', 'rooms': ['Room - 3', 'Room - 4']}, (12, 8): {'type': 'Exit_gate', 'rooms': ['Room - 4', 'Room - 6']}, (20, 7): {'type': 'Exit_gate', 'rooms': ['Room - 7', 'Room - 8']}, (6, 11): {'type': 'Exit_gate', 'rooms': ['Room - 2', 'Room - 4']}, (18, 11): {'type': 'Exit_gate', 'rooms': ['Room - 6', 'Room - 8']}}
+
+    graph_node(hard_0) 
     # graph_node(medium_0) 
     # graph_node(hard_0) 
 
