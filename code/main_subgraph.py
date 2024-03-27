@@ -31,24 +31,26 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
     time_step = 0
     subgoals = gen_subgoals(env) 
     subgoals = subgoals[1:]
+    subgoals_counter = 0 
+    subgoals_reward = 0 
+    # print(subgoals)
     while not done: 
-        for subgoal in subgoals: 
-            if done: 
-                break 
             # 1. Select action according to policy
             action = agent.policy(state)
             # 2. Execute selected action
             next_state, reward, terminated, truncated, _ = env.step(action)
-            if env.agent_position == subgoal: 
-                reward = 0.1 
+            if not eval and subgoals_counter<len(subgoals): 
+                if env.agent_position == subgoals[subgoals_counter]: 
+                    subgoals_reward += 1#*(subgoals_counter+1)
+                    # reward+=subgoals_reward # Giving subgoal rewards as soon as subgoal achieved (intrinsic motivation)
+                    subgoals_counter+=1
+            if reward==1: reward+=subgoals_reward # Giving subgoal rewards only on wins 
             # 3. Integrate new experience into agent
             if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
             state = next_state
             done = terminated or truncated
             discounted_return += (discount_factor**time_step)*reward
             time_step += 1
-            if env.agent_position == subgoal: 
-                continue 
     if not eval: 
         print("Train Ep ", nr_episode, ":", discounted_return)
         writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
@@ -58,6 +60,44 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
     if ((not eval) and (nr_episode%params["save_freq"]==0)): 
         agent.save_model(checkpoint=nr_episode) 
     return discounted_return
+
+
+# def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
+#     state, _ = env.reset()
+#     discounted_return = 0
+#     discount_factor = params["discount_factor"] 
+#     done = False
+#     time_step = 0
+#     subgoals = gen_subgoals(env) 
+#     subgoals = subgoals[1:]
+#     # print(subgoals)
+#     while not done: 
+#         for subgoal in subgoals: 
+#             if done: 
+#                 break 
+#             # 1. Select action according to policy
+#             action = agent.policy(state)
+#             # 2. Execute selected action
+#             next_state, reward, terminated, truncated, _ = env.step(action)
+#             if env.agent_position == subgoal: 
+#                 reward = 0.01
+#             # 3. Integrate new experience into agent
+#             if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
+#             state = next_state
+#             done = terminated or truncated
+#             discounted_return += (discount_factor**time_step)*reward
+#             time_step += 1
+#             if env.agent_position == subgoal: 
+#                 continue 
+#     if not eval: 
+#         print("Train Ep ", nr_episode, ":", discounted_return)
+#         writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
+#     else: 
+#         print("Eval Ep ", nr_episode, ":", discounted_return) 
+#         writer.add_scalar(f'eval/discounted_return', discounted_return, nr_episode) 
+#     if ((not eval) and (nr_episode%params["save_freq"]==0)): 
+#         agent.save_model(checkpoint=nr_episode) 
+#     return discounted_return
 
 def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
     state, _ = env.reset()
@@ -120,9 +160,7 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
     plot_title="Training--"+params["exp_name"] if not eval else "Evaluation--"+params["exp_name"]  
     plot_filename = "train_plot.png" if not eval else "eval_plot.png" 
     exp_path = params["exp_path"] 
-    if subgoals: 
-        if eval: returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
-        else: returns = [episode_subgoals(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
+    if subgoals: returns = [episode_subgoals(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     else: returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     x = range(num_episodes)
     y = returns
@@ -140,11 +178,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
     parser.add_argument('--map', type=str, default='hard_1')
     parser.add_argument('--algo', type=str, default='SARSALearner')
-    parser.add_argument('--run_id', type=int, default=10)
+    parser.add_argument('--run_id', type=int, default=20000)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')
-    parser.add_argument('--save_freq', type=int, default=100)
-    parser.add_argument('--discount_factor', type=float, default=0.99)
-    parser.add_argument('--training_episodes', type=int, default=2000)
+    parser.add_argument('--save_freq', type=int, default=1000)
+    parser.add_argument('--discount_factor', type=float, default=0.997)
+    parser.add_argument('--training_episodes', type=int, default=20000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
     parser.add_argument('--im_type', type=str, default=None)
@@ -178,7 +216,7 @@ if __name__ == "__main__":
 
     params = {}
     params["nr_actions"] = train_env.action_space.n
-    params["gamma"] = 0.99
+    params["gamma"] = 0.997
     params["epsilon_decay"] = 0.001
     params["alpha"] = 0.1
     params["env"] = train_env
