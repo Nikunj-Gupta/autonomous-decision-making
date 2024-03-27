@@ -1,8 +1,9 @@
 all: 
 	clear 
 	# pip install -r req.txt 
+	# python graph_q.py --load_path "rapid-runs-backup/easy_0/SARSALearner/UCB1/im-rapid/run-1" 
 	# python grid_to_graph.py 
-	python main.py  
+	python main.py 
 	# python main_sb3.py --algo PPO & 
 	# python main_sb3.py --algo A2C & 
 run_im: 
@@ -17,9 +18,14 @@ run:
 plot: 
 	clear 
 	python plots.py 
+graph-test: 
+	for number in 1 2 3 4 5 ; do \
+		python main.py --run_id $$number & \
+	done
+
 rapid-test: 
 	for number in 1 ; do \
-		python main.py --run_id $$number --im_type baseline --exploration_strategy UCB1new & \
+		python main.py --run_id $$number & \
 	done
 
 test: 

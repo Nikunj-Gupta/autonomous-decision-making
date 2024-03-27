@@ -25,27 +25,30 @@ def preprocess(state, subgoal):
 
 def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
     state, _ = env.reset()
-    final_goal = env.goal_position 
     discounted_return = 0
     discount_factor = params["discount_factor"] 
     done = False
     time_step = 0
     subgoals = gen_subgoals(env) 
     subgoals = subgoals[1:]
-    for subgoal in subgoals: 
-        while not done:
-            env.goal_position = subgoal 
-            # state = preprocess(state, subgoal) 
+    while not done: 
+        for subgoal in subgoals: 
+            if done: 
+                break 
             # 1. Select action according to policy
             action = agent.policy(state)
             # 2. Execute selected action
             next_state, reward, terminated, truncated, _ = env.step(action)
+            if env.agent_position == subgoal: 
+                reward = 0.1 
             # 3. Integrate new experience into agent
             if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
             state = next_state
             done = terminated or truncated
             discounted_return += (discount_factor**time_step)*reward
             time_step += 1
+            if env.agent_position == subgoal: 
+                continue 
     if not eval: 
         print("Train Ep ", nr_episode, ":", discounted_return)
         writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
@@ -54,7 +57,6 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
         writer.add_scalar(f'eval/discounted_return', discounted_return, nr_episode) 
     if ((not eval) and (nr_episode%params["save_freq"]==0)): 
         agent.save_model(checkpoint=nr_episode) 
-    env.goal_position = final_goal 
     return discounted_return
 
 def episode(env, agent, nr_episode=0, params=None, eval=False, writer=None, state_count={}):
@@ -118,7 +120,9 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
     plot_title="Training--"+params["exp_name"] if not eval else "Evaluation--"+params["exp_name"]  
     plot_filename = "train_plot.png" if not eval else "eval_plot.png" 
     exp_path = params["exp_path"] 
-    if subgoals: returns = [episode_subgoals(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
+    if subgoals: 
+        if eval: returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
+        else: returns = [episode_subgoals(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     else: returns = [episode(env, agent, i, params, eval, writer) for i in range(num_episodes)] 
     x = range(num_episodes)
     y = returns
@@ -134,7 +138,7 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
-    parser.add_argument('--map', type=str, default='hard_0')
+    parser.add_argument('--map', type=str, default='hard_1')
     parser.add_argument('--algo', type=str, default='SARSALearner')
     parser.add_argument('--run_id', type=int, default=10)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')
@@ -166,7 +170,7 @@ if __name__ == "__main__":
     # exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
     # exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
 
-    exp_path = f"graph-runs/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
+    exp_path = f"subgoal-runs/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
     exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--subgoals--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
@@ -196,6 +200,7 @@ if __name__ == "__main__":
     params["bayesianUCB_beta0"] = bayesianUCB_beta0 
     params["im_type"] = im_type 
     params["beta"] = beta 
+
 
     print(f"Intrinsic Motivation: {im_type}") 
 

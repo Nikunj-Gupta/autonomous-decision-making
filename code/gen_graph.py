@@ -9,6 +9,7 @@ def graph_node(substate={}):
     # print(substate) 
     nodes = list(substate.keys()) 
     # print(nodes)
+    # print(nodes)
     nodes_dict = {} 
     for i,n in enumerate(nodes): 
         nodes_dict[i] = n 
