@@ -35,22 +35,22 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
     subgoals_reward = 0 
     # print(subgoals)
     while not done: 
-            # 1. Select action according to policy
-            action = agent.policy(state)
-            # 2. Execute selected action
-            next_state, reward, terminated, truncated, _ = env.step(action)
-            if not eval and subgoals_counter<len(subgoals): 
-                if env.agent_position == subgoals[subgoals_counter]: 
-                    subgoals_reward += 1#*(subgoals_counter+1)
-                    # reward+=subgoals_reward # Giving subgoal rewards as soon as subgoal achieved (intrinsic motivation)
-                    subgoals_counter+=1
-            if reward==1: reward+=subgoals_reward # Giving subgoal rewards only on wins 
-            # 3. Integrate new experience into agent
-            if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
-            state = next_state
-            done = terminated or truncated
-            discounted_return += (discount_factor**time_step)*reward
-            time_step += 1
+        # 1. Select action according to policy
+        action = agent.policy(state)
+        # 2. Execute selected action
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        if not eval and subgoals_counter<len(subgoals): 
+            if env.agent_position == subgoals[subgoals_counter]: 
+                subgoals_reward += 1#*(subgoals_counter+1)
+                # reward+=subgoals_reward # Giving subgoal rewards as soon as subgoal achieved (intrinsic motivation)
+                subgoals_counter+=1
+        if reward==1: reward+=subgoals_reward # Giving subgoal rewards only on wins 
+        # 3. Integrate new experience into agent
+        if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
+        state = next_state
+        done = terminated or truncated
+        discounted_return += (discount_factor**time_step)*reward
+        time_step += 1
     if not eval: 
         print("Train Ep ", nr_episode, ":", discounted_return)
         writer.add_scalar(f'train/discounted_return', discounted_return, nr_episode) 
@@ -178,11 +178,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
     parser.add_argument('--map', type=str, default='hard_1')
     parser.add_argument('--algo', type=str, default='SARSALearner')
-    parser.add_argument('--run_id', type=int, default=20000)
+    parser.add_argument('--run_id', type=int, default=10)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')
-    parser.add_argument('--save_freq', type=int, default=1000)
+    parser.add_argument('--save_freq', type=int, default=100)
     parser.add_argument('--discount_factor', type=float, default=0.997)
-    parser.add_argument('--training_episodes', type=int, default=20000)
+    parser.add_argument('--training_episodes', type=int, default=2000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
     parser.add_argument('--im_type', type=str, default=None)
@@ -255,6 +255,18 @@ if __name__ == "__main__":
     elif algo == "QLearner": 
         agent = a.QLearner(params)
         eval_agent = a.QLearner(params) 
+    elif algo == "TD0Learner": 
+        agent = a.TD0Learner(params)
+        eval_agent = a.TD0Learner(params) 
+    elif algo == "TD1Learner": 
+        agent = a.TD1Learner(params)
+        eval_agent = a.TD1Learner(params) 
+    elif algo == "TDLambdaForwardLearner": 
+        agent = a.TDLambdaForwardLearner(params)
+        eval_agent = a.TDLambdaForwardLearner(params) 
+    elif algo == "TDLambdaBackwardLearner": 
+        agent = a.TDLambdaBackwardLearner(params)
+        eval_agent = a.TDLambdaBackwardLearner(params) 
 
     writer = SummaryWriter(logdir=os.path.join(exp_path, "summaries/")) 
     run_exp(train_env, agent, params, eval=False, writer=writer, subgoals=subgoals) 
