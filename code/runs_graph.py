@@ -4,8 +4,8 @@ PARALLEL=True # False
 RUNS = list(range(1, 10)) 
 MAPS = ["hard_0", "hard_1"] 
 # ALGOS = ["SARSALearner", "QLearner", "TD0Learner", "TD1Learner", "TDLambdaForwardLearner", "TDLambdaBackwardLearner"] 
-ALGOS = ["QLearner"] 
-EXPLORATION_STRATEGIES = ["UCB1", "UCB1new"] 
+ALGOS = ["UCBQLearner"] 
+EXPLORATION_STRATEGIES = ["UCB1"] 
 
 for m in MAPS: 
     for run_id in RUNS: 

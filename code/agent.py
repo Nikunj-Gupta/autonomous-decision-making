@@ -147,6 +147,29 @@ class QLearner(TemporalDifferenceLearningAgent):
         self.Q(state)[action] += self.alpha*TD_error
 
 
+class UCBQLearner(QLearner):
+    def __init__(self, params):
+        super(UCBQLearner, self).__init__(params)
+        self.exploration_constant = params["exploration_constant"]
+        self.action_counts = {}
+    
+    def get_action_counts(self, state):
+        state = np.array2string(state)
+        if state not in self.action_counts:
+            self.action_counts[state] = np.zeros(self.nr_actions)
+        return self.action_counts[state]
+    
+    def update_action_counts(self, state, action):
+        state = np.array2string(state)
+        self.action_counts[state][action] += 1
+        
+    def policy(self, state):
+        Q_values = self.Q(state)
+        action_counts = self.get_action_counts(state)
+        action = UCB1(Q_values, action_counts, exploration_constant=self.exploration_constant)
+        self.update_action_counts(state, action)
+        return action
+
 class TD0Learner(TemporalDifferenceLearningAgent):
     def update(self, state, action, reward, next_state, terminated, truncated):
         self.decay_exploration()

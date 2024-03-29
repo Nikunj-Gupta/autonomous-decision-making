@@ -27,19 +27,3 @@ def UCB1(Q_values, action_counts, exploration_constant=1):
             exploration_term *= np.sqrt(np.log(N_total)/N)
             UCB1_values.append(Q + exploration_term)
     return np.argmax(UCB1_values)
-
-def UCB1new(Q_values, action_counts, exploration_constant=1):
-    UCB1_values = []
-    N_total = sum(action_counts)
-    for Q, N in zip(Q_values, action_counts):
-        if N == 0:
-            UCB1_values.append(math.inf)
-        else:
-            exploration_term = exploration_constant
-            exploration_term *= np.sqrt(2*np.log(N_total)/N)
-            UCB1_values.append(Q + exploration_term)
-    return np.argmax(UCB1_values)
-
-def BayesianUCB1(Q_values, action_counts, alphas, betas):
-    return np.argmax(sc.beta(alphas, betas)) 
-

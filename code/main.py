@@ -135,11 +135,11 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
     parser.add_argument('--map', type=str, default='hard_1')
-    parser.add_argument('--algo', type=str, default='QLearner')
+    parser.add_argument('--algo', type=str, default='UCBQLearner')
     parser.add_argument('--run_id', type=int, default=10)
-    parser.add_argument('--exploration_strategy', type=str, default='UCB1new')
+    parser.add_argument('--exploration_strategy', type=str, default='UCB1')
     parser.add_argument('--save_freq', type=int, default=100)
-    parser.add_argument('--discount_factor', type=float, default=0.99)
+    parser.add_argument('--discount_factor', type=float, default=0.997)
     parser.add_argument('--training_episodes', type=int, default=2000)
     parser.add_argument('--eval_episodes', type=int, default=100)
     parser.add_argument('--eval_freq', type=int, default=100)
@@ -176,11 +176,12 @@ if __name__ == "__main__":
 
     params = {}
     params["nr_actions"] = train_env.action_space.n
-    params["gamma"] = 0.99
-    params["epsilon_decay"] = 0.001
+    params["gamma"] = 0.997 
+    params["epsilon_decay"] = 0.0001
     params["alpha"] = 0.1
     params["env"] = train_env
     params["exploration_strategy"] = exploration_strategy
+    params["exploration_constant"] = np.sqrt(2) 
     params["save_freq"] = save_freq
     params["exp_path"] = exp_path
     params["exp_name"] = exp_name
@@ -216,6 +217,9 @@ if __name__ == "__main__":
     elif algo == "QLearner": 
         agent = a.QLearner(params)
         eval_agent = a.QLearner(params) 
+    elif algo == "UCBQLearner": 
+        agent = a.UCBQLearner(params)
+        eval_agent = a.UCBQLearner(params)
     elif algo == "FeudalQLearner": 
         agent = a.FeudalQLearningTable(params) 
         eval_agent = a.FeudalQLearningTable(params) 
