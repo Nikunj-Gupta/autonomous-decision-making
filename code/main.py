@@ -134,10 +134,10 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
-    parser.add_argument('--map', type=str, default='hard_0')
-    parser.add_argument('--algo', type=str, default='SARSALearner')
+    parser.add_argument('--map', type=str, default='hard_1')
+    parser.add_argument('--algo', type=str, default='QLearner')
     parser.add_argument('--run_id', type=int, default=10)
-    parser.add_argument('--exploration_strategy', type=str, default='UCB1')
+    parser.add_argument('--exploration_strategy', type=str, default='UCB1new')
     parser.add_argument('--save_freq', type=int, default=100)
     parser.add_argument('--discount_factor', type=float, default=0.99)
     parser.add_argument('--training_episodes', type=int, default=2000)
@@ -145,7 +145,8 @@ if __name__ == "__main__":
     parser.add_argument('--eval_freq', type=int, default=100)
     parser.add_argument('--im_type', type=str, default=None)
     parser.add_argument('--beta', type=float, default=0.1)
-    parser.add_argument('--subgoals', type=int, default=1)
+    parser.add_argument('--subgoals', type=int, default=0)
+    parser.add_argument('--levels', type=int, default=0)
     args = parser.parse_args()
 
     rooms_instance = args.map 
@@ -162,12 +163,13 @@ if __name__ == "__main__":
     im_type = args.im_type
     beta = args.beta
     subgoals = args.subgoals 
+    levels = args.levels
 
     # exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
     # exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
 
-    exp_path = f"graph-runs/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
-    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--subgoals--run_{run_id}" 
+    exp_path = f"baseline-runs/{rooms_instance}/{algo}/{exploration_strategy}/run-{run_id}" 
+    exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
     eval_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"eval_video.mp4", exp_path=exp_path) 
@@ -196,6 +198,8 @@ if __name__ == "__main__":
     params["bayesianUCB_beta0"] = bayesianUCB_beta0 
     params["im_type"] = im_type 
     params["beta"] = beta 
+    params["levels"] = levels 
+
 
     print(f"Intrinsic Motivation: {im_type}") 
 
@@ -212,6 +216,9 @@ if __name__ == "__main__":
     elif algo == "QLearner": 
         agent = a.QLearner(params)
         eval_agent = a.QLearner(params) 
+    elif algo == "FeudalQLearner": 
+        agent = a.FeudalQLearningTable(params) 
+        eval_agent = a.FeudalQLearningTable(params) 
 
     writer = SummaryWriter(logdir=os.path.join(exp_path, "summaries/")) 
     run_exp(train_env, agent, params, eval=False, writer=writer, subgoals=subgoals) 
