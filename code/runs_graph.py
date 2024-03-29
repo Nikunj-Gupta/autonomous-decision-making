@@ -11,6 +11,6 @@ for m in MAPS:
     for run_id in RUNS: 
         for algo in ALGOS: 
             for explore in EXPLORATION_STRATEGIES: 
-                if PARALLEL: os.system(f"python main_subgraph.py --map {m} --algo {algo} --exploration_strategy {explore} --run_id {run_id} &") 
-                else: os.system(f"python main_subgraph.py --map {m} --algo {algo} --exploration_strategy {explore} --run_id {run_id}") 
+                if PARALLEL: os.system(f"python main.py --map {m} --algo {algo} --exploration_strategy {explore} --run_id {run_id} &") 
+                else: os.system(f"python main.py --map {m} --algo {algo} --exploration_strategy {explore} --run_id {run_id}") 
 
