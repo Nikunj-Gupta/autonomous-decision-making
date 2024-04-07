@@ -39,12 +39,12 @@ def episode_subgoals(env, agent, nr_episode=0, params=None, eval=False, writer=N
         action = agent.policy(state)
         # 2. Execute selected action
         next_state, reward, terminated, truncated, _ = env.step(action)
-        if not eval and subgoals_counter<len(subgoals): 
+        if (not eval) and (subgoals_counter<len(subgoals)): 
             if env.agent_position == subgoals[subgoals_counter]: 
                 subgoals_reward += 1#*(subgoals_counter+1)
                 # reward+=subgoals_reward # Giving subgoal rewards as soon as subgoal achieved (intrinsic motivation)
                 subgoals_counter+=1
-        if reward==1: reward+=subgoals_reward # Giving subgoal rewards only on wins 
+            if reward==1: reward+=subgoals_reward # Giving subgoal rewards only on wins 
         # 3. Integrate new experience into agent
         if not eval: agent.update(state, action, reward, next_state, terminated, truncated)
         state = next_state
