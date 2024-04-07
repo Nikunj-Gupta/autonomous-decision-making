@@ -60,8 +60,8 @@ def graph_node(substate={}):
     ]
 
     # Draw the graph with custom node colors
-    nx.draw(G, labels=nodes_dict, with_labels=True, node_color=node_colors)
-    plt.show()
+    # nx.draw(G, labels=nodes_dict, with_labels=True, node_color=node_colors)
+    # plt.show()
 
     # # Find the maximum value (excluding zeros)
     # max_value = np.max(adjacency_matrix[adjacency_matrix != 0])

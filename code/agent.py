@@ -61,6 +61,7 @@ class TemporalDifferenceLearningAgent(Agent):
         self.bayesianUCB_beta0 = params["bayesianUCB_beta0"]
         self.bayesianUCB_alphas = np.ones(self.nr_actions)*self.bayesianUCB_alpha0  
         self.bayesianUCB_betas = np.ones(self.nr_actions)*self.bayesianUCB_beta0 
+        self.exploration_constant = params["exploration_constant"]
         
     def Q(self, state):
         state = np.array2string(state)
@@ -68,30 +69,25 @@ class TemporalDifferenceLearningAgent(Agent):
             self.Q_values[state] = np.zeros(self.nr_actions)
         return self.Q_values[state]
 
+    def get_action_counts(self, state):
+        state = np.array2string(state)
+        if state not in self.action_counts:
+            self.action_counts[state] = np.zeros(self.nr_actions)
+        return self.action_counts[state]
+    
+    def update_action_counts(self, state, action):
+        state = np.array2string(state)
+        self.action_counts[state][action] += 1
+
     def policy(self, state):
         Q_values = self.Q(state)
-        if self.exploration_strategy=="epsilon_greedy": 
-            return epsilon_greedy(Q_values, None, epsilon=self.epsilon)
-        elif self.exploration_strategy=="UCB1": 
-            state = np.array2string(state) 
-            if state not in self.action_counts: 
-                self.action_counts[state] = np.zeros(self.nr_actions)
-            action = UCB1(Q_values, self.action_counts[state]) 
-            self.action_counts[state][action] += 1 
-            return action 
-        elif self.exploration_strategy=="UCB1new": 
-            state = np.array2string(state) 
-            if state not in self.action_counts: 
-                self.action_counts[state] = np.zeros(self.nr_actions)
-            action = UCB1new(Q_values, self.action_counts[state]) 
-            self.action_counts[state][action] += 1 
-        elif self.exploration_strategy=="boltzmann": 
-            return boltzmann(Q_values, None)
-            # return boltzmann(Q_values, None, temperature=self.temperature)
-        elif self.exploration_strategy=="random_bandit": 
-            return random_bandit(Q_values, None)
-        elif self.exploration_strategy=="BayesianUCB1": 
-            return BayesianUCB1(Q_values, None, self.bayesianUCB_alphas, self.bayesianUCB_betas) # when do we reinitialize alphas, betas? 
+        action_counts = self.get_action_counts(state)
+        if self.exploration_strategy=="epsilon_greedy": action = epsilon_greedy(Q_values, epsilon=self.epsilon) 
+        elif self.exploration_strategy=="UCB1": action = UCB1(Q_values, action_counts, exploration_constant=self.exploration_constant) 
+        elif self.exploration_strategy=="boltzmann": action = boltzmann(Q_values) 
+        elif self.exploration_strategy=="random_bandit": action = random_bandit(Q_values) 
+        self.update_action_counts(state, action)
+        return action 
     
     def decay_exploration(self):
         self.epsilon = max(self.epsilon-self.epsilon_decay, self.epsilon_decay)
@@ -145,30 +141,6 @@ class QLearner(TemporalDifferenceLearningAgent):
             TD_target += self.gamma*Q_next
         TD_error = TD_target - Q_old
         self.Q(state)[action] += self.alpha*TD_error
-
-
-class UCBQLearner(QLearner):
-    def __init__(self, params):
-        super(UCBQLearner, self).__init__(params)
-        self.exploration_constant = params["exploration_constant"]
-        self.action_counts = {}
-    
-    def get_action_counts(self, state):
-        state = np.array2string(state)
-        if state not in self.action_counts:
-            self.action_counts[state] = np.zeros(self.nr_actions)
-        return self.action_counts[state]
-    
-    def update_action_counts(self, state, action):
-        state = np.array2string(state)
-        self.action_counts[state][action] += 1
-        
-    def policy(self, state):
-        Q_values = self.Q(state)
-        action_counts = self.get_action_counts(state)
-        action = UCB1(Q_values, action_counts, exploration_constant=self.exploration_constant)
-        self.update_action_counts(state, action)
-        return action
 
 class TD0Learner(TemporalDifferenceLearningAgent):
     def update(self, state, action, reward, next_state, terminated, truncated):

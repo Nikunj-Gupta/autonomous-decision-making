@@ -176,7 +176,7 @@ def run_exp(env, agent, params, eval=False, writer=None, subgoals=False):
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser(description='Autonomous Decision-making')
-    parser.add_argument('--map', type=str, default='hard_1')
+    parser.add_argument('--map', type=str, default='hard_0')
     parser.add_argument('--algo', type=str, default='SARSALearner')
     parser.add_argument('--run_id', type=int, default=10)
     parser.add_argument('--exploration_strategy', type=str, default='UCB1')
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     # exp_path = f"rapid-runs/{rooms_instance}/{algo}/{exploration_strategy}/im-{im_type}/run-{run_id}" 
     # exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--im_{im_type}--run_{run_id}" 
 
-    exp_path = f"subgoal-runs/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
+    exp_path = f"subgoal-runs-new/{rooms_instance}/{algo}/{exploration_strategy}/subgoals/run-{run_id}" 
     exp_name = f"{rooms_instance}--{algo}--{exploration_strategy}--subgoals--run_{run_id}" 
 
     train_env = rooms.load_env(f"layouts/{rooms_instance}.txt", f"train_video.mp4", exp_path=exp_path) 
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     params = {}
     params["nr_actions"] = train_env.action_space.n
     params["gamma"] = 0.997
-    params["epsilon_decay"] = 0.001
+    params["epsilon_decay"] = 0.0001
     params["alpha"] = 0.1
     params["env"] = train_env
     params["exploration_strategy"] = exploration_strategy
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     params["bayesianUCB_beta0"] = bayesianUCB_beta0 
     params["im_type"] = im_type 
     params["beta"] = beta 
-
+    params["exploration_constant"] = np.sqrt(2) 
 
     print(f"Intrinsic Motivation: {im_type}") 
 

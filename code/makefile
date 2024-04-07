@@ -3,7 +3,7 @@ all:
 	# pip install -r req.txt 
 	# python graph_q.py --load_path "rapid-runs-backup/easy_0/SARSALearner/UCB1/im-rapid/run-1" 
 	# python grid_to_graph.py 
-	python main.py 
+	python main_subgraph.py 
 	# python main_sb3.py --algo PPO & 
 	# python main_sb3.py --algo A2C & 
 run_im: 

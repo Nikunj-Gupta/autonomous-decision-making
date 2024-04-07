@@ -16,7 +16,7 @@ def boltzmann(Q_values, action_counts, temperature=1.0):
     E = np.exp(Q_values/temperature)
     return np.random.choice(range(len(Q_values)), p=E/sum(E))
         
-def UCB1(Q_values, action_counts, exploration_constant=1):
+def UCB1(Q_values, action_counts, exploration_constant=np.sqrt(2)):
     UCB1_values = []
     N_total = sum(action_counts)
     for Q, N in zip(Q_values, action_counts):
