@@ -28,8 +28,25 @@ All available maps are provided in the folder `code/layouts` and listed in the t
 
 ## Usage
 
+### Training 
 Run agent using the following commands in a terminal (`map-name` is provided in the "Map"-column of the table above):
 ```
 cd code
-python main.py <map-name>
+python main.py <map-name> <seed> 
+```
+
+### Evaluation 
+
+Run agent using the following commands in a terminal (`load-model-path` is the full path to saved model to evaluate):
+```
+cd code
+python eval.py <map-name> <load-model-path> 
+```
+
+### Plots 
+
+Use the `plots.py` script to generate plots for experiments in `results` dir: 
+```
+cd code
+python plots.py 
 ```
