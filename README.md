@@ -45,6 +45,10 @@ python eval.py <map-name> <load-model-path> <seed>
 ```
 Note: seed is optional to give here. 
 
+### Trained models  
+
+Final trained models are saved in `code/trained_weights` directory. Use them to evaluate using above command. 
+
 ### Plots 
 
 Use the `plots.py` script to generate plots for experiments in `results` dir: 
