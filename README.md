@@ -41,7 +41,7 @@ Note: seed is optional to give here.
 Run agent using the following commands in a terminal (`load-model-path` is the full path to saved model to evaluate):
 ```
 cd code
-python eval.py <map-name> <load-model-path> 
+python eval.py <map-name> <load-model-path> <seed> 
 ```
 Note: seed is optional to give here. 
 
