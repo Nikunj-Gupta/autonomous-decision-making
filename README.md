@@ -34,6 +34,7 @@ Run agent using the following commands in a terminal (`map-name` is provided in 
 cd code
 python main.py <map-name> <seed> 
 ```
+Note: seed is optional to give here. 
 
 ### Evaluation 
 
@@ -42,6 +43,7 @@ Run agent using the following commands in a terminal (`load-model-path` is the f
 cd code
 python eval.py <map-name> <load-model-path> 
 ```
+Note: seed is optional to give here. 
 
 ### Plots 
 
