@@ -46,7 +46,8 @@ def episode(env, agent, nr_episode=0):
     
 params = {}
 rooms_instance = sys.argv[1]
-seed = int(sys.argv[2]) 
+try: seed = int(sys.argv[2]) 
+except: seed = 0 
 results_dir = f"results/{rooms_instance}/{seed}/" 
 
 if not os.path.exists(results_dir): os.makedirs(results_dir)
