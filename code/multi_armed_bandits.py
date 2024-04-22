@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import math
-import scipy.special as sc
 
 def random_bandit(Q_values, action_counts):
     return random.choice(range(len(Q_values)))
@@ -27,3 +26,4 @@ def UCB1(Q_values, action_counts, exploration_constant=np.sqrt(2)):
             exploration_term *= np.sqrt(np.log(N_total)/N)
             UCB1_values.append(Q + exploration_term)
     return np.argmax(UCB1_values)
+

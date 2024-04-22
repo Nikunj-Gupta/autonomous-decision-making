@@ -1,12 +1,10 @@
 from collections import deque
-from math import sqrt
 import gen_graph
 import rooms
 import heapq
 
 def shortest_path(adj_matrix, node_list):
     # Initialize variables
-    # print(node_list)
     node_to_index = {node: i for i, node in enumerate(node_list.keys())}  # Map nodes to indices
 
     source = node_to_index[len(node_list) - 2]

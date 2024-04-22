@@ -7,7 +7,6 @@ import matplotlib.pyplot as plot
 import random
 from moviepy.editor import VideoClip
 from moviepy.video.io.bindings import mplfig_to_npimage
-import os 
 
 MOVE_NORTH = 0
 MOVE_SOUTH = 1
@@ -23,10 +22,9 @@ NR_CHANNELS = len([AGENT_CHANNEL,GOAL_CHANNEL,OBSTACLE_CHANNEL])
 
 class RoomsEnv(gym.Env):
 
-    def __init__(self, width, height, obstacles, time_limit, stochastic=None, movie_filename=None, exp_path=None, seed=None):
+    def __init__(self, width, height, obstacles, time_limit, stochastic=None, movie_filename=None, seed=None):
         self.seed(seed=seed)
         self.movie_filename = movie_filename
-        self.exp_path = exp_path
         self.action_space = spaces.Discrete(len(ROOMS_ACTIONS))
         self.observation_space = spaces.Box(-numpy.inf, numpy.inf, shape=(NR_CHANNELS,width,height))
         self.agent_position = None
@@ -52,7 +50,7 @@ class RoomsEnv(gym.Env):
         self.reset()
         
     def state(self):
-        state = numpy.zeros((NR_CHANNELS,self.width,self.height), dtype=numpy.float32)
+        state = numpy.zeros((NR_CHANNELS,self.width,self.height))
         x_agent,y_agent = self.agent_position
         state[AGENT_CHANNEL][x_agent][y_agent] = 1
         x_goal, y_goal = self.goal_position
@@ -64,6 +62,7 @@ class RoomsEnv(gym.Env):
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
+        print("seed:", seed)
         return [seed]
         
     def step(self, action):
@@ -99,14 +98,13 @@ class RoomsEnv(gym.Env):
         if new_position not in self.obstacles:
             self.agent_position = new_position
 
-    def reset(self, seed=None):
-        self.seed(seed)
+    def reset(self):
         self.terminated = False
         self.truncated = False
         self.agent_position = random.choice(self.occupiable_positions)
         self.time = 0
         self.state_history.clear()
-        return self.state(), {} 
+        return self.state()
         
     def state_summary(self):
         return {
@@ -130,8 +128,7 @@ class RoomsEnv(gym.Env):
                 ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelleft=False, labelbottom=False)
                 return mplfig_to_npimage(fig)
             animation = VideoClip(make_frame, duration=duration)
-            animation.write_videofile(os.path.join(self.exp_path, self.movie_filename), fps=1)
-            plot.close() 
+            animation.write_videofile(self.movie_filename, fps=1)
         
 def read_map_file(path):
     file = pathlib.Path(path)
@@ -151,9 +148,6 @@ def read_map_file(path):
     height += 1
     return width, height, obstacles
 
-def load_env(path, movie_filename=None, exp_path=None, time_limit=100, stochastic=None, seed=None):
-    if exp_path is not None:
-        if not os.path.exists(exp_path):
-            os.makedirs(exp_path)
+def load_env(path, movie_filename, time_limit=100, stochastic=None, seed=None):
     width, height, obstacles = read_map_file(path)
-    return RoomsEnv(width, height, obstacles, time_limit, stochastic, movie_filename, exp_path=exp_path, seed=seed)
+    return RoomsEnv(width, height, obstacles, time_limit, stochastic, movie_filename, seed)

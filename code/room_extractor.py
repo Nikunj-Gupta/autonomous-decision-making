@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import networkx as nx
 import rooms
 
 class Node:
@@ -141,13 +139,9 @@ if __name__ == "__main__":
     env = rooms.load_env(f"layouts/hard_1.txt")
 
     agent_pos = env.agent_position
-    # print(agent_pos)
     goal_pos = env.goal_position
-    # print(goal_pos)
     empty_points = env.occupiable_positions
-    # print(empty_points)
     empty_points.append(goal_pos)
-    # print(empty_points)
     wall_point = env.obstacles
 
     agent_room = {}
@@ -155,34 +149,12 @@ if __name__ == "__main__":
 
     exits = find_exits(wall_point)
 
-    # Print the resulting
-    # print(exits)
-
     points = [item for item in empty_points if item not in exits]
 
     # Split the data into sublists
     map_rooms = split_into_rooms(points.copy())
 
     room_way = adjacent_room(map_rooms, exits)
-
-    # # Print the sublists
-    # for room_number, sublist in map_rooms.items():
-    #     print(f"Room {room_number}: {sublist}")
-
-    # for exit_g, rooms_c in room_way.items():
-    #     print(f"Exit_gate {exit_g}: {rooms_c}")
-
-
-    # for A, B in agent_room.items():
-    #     print(f"Agent_room {A}: {B}")
-
-    # for A, B in goal_room.items():
-    #     print(f"Goal_room {A}: {B}")
-
-    # print(map_rooms)
-    # print(room_way)
-    # print(agent_room)
-    # print(goal_room)
 
     combined_data = {}
     combined_data["room_info"] = {}
