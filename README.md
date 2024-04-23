@@ -9,6 +9,8 @@ Please create a virtual environment before running the code (see documentation f
 To install all dependencies run the following commands in a terminal:
 ```
 cd code
+conda create -n rl python=3.11
+conda activate rl
 pip install -r requirements.txt
 ```
 
@@ -56,3 +58,16 @@ Use the `plots.py` script to generate plots for experiments in `results` dir:
 cd code
 python plots.py 
 ```
+### Hardware used: 
+Apple M1 chip (8-core CPU), OS: Mac OS, Memory: 8 Gb 
+
+### Results: 
+
+**Trained models.** Final trained models are saved in `code/trained_weights` directory. Use them to evaluate using the above command.
+
+**All training results are available here:**  
+[https://drive.google.com/drive/folders/1UMNAohvbMBn9qr_90OvY5s35NTD7HYer?usp=sharing](https://drive.google.com/drive/folders/1UMNAohvbMBn9qr_90OvY5s35NTD7HYer?usp=sharing)
+
+**All evaluation results are available here:**  
+[https://drive.google.com/drive/folders/14qWPS8uGjRKv4hbwT7waaSEYwsR1OmE0?usp=sharing](https://drive.google.com/drive/folders/14qWPS8uGjRKv4hbwT7waaSEYwsR1OmE0?usp=sharing)
+
